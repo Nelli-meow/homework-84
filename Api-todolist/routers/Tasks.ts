@@ -46,7 +46,6 @@ TaskRouter.post("/", async (req, res) => {
 
        const user = await User.findOne({ token: authToken });
 
-
        if (!user) {
            res.status(400).send({ error: "Unauthorized: Token is wrong" });
            return;
@@ -78,6 +77,56 @@ TaskRouter.post("/", async (req, res) => {
 
    } catch(error) {
        res.status(400).send({error:'Error while creating task'});
+   }
+});
+
+TaskRouter.put("/:id", async (req, res) => {
+   try {
+       const id = req.params.id;
+
+       const authToken = req.get("Authorization");
+
+       if (!authToken) {
+           res.status(400).send({ error: "Unauthorized: Token is missing" });
+           return;
+       }
+
+       const user = await User.findOne({ token: authToken });
+
+       if (!user) {
+           res.status(400).send({ error: "Unauthorized: Token is wrong" });
+           return;
+       }
+
+       const task = await Task.findById(id);
+
+       if (!task) {
+            res.status(404).send({ error: "Task not found" });
+           return;
+       }
+
+       if (task.user.toString() !== user._id.toString()) {
+           res.status(403).send({ error: "You cant edit this task" });
+           return;
+       }
+
+       if (req.body.user) {
+           res.status(403).send({ error: "You can't edit the user field" });
+           return;
+       }
+
+       const { status, description, title } = req.body;
+
+       task.status = status || task.status;
+       task.description = description || task.description;
+       task.title = title || task.title;
+
+       await task.save();
+
+       res.status(200).send(task);
+
+   } catch (error) {
+       res.status(400).send({ error: "Error while updating task" });
    }
 });
 
