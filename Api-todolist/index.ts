@@ -1,10 +1,12 @@
 import express from "express";
 import mongoose from "mongoose";
+import UsersRouter from "./routers/Users";
 
 const app = express();
 const port =  8000;
 
 app.use(express.json());
+app.use('/users', UsersRouter);
 
 const run = async () => {
 
