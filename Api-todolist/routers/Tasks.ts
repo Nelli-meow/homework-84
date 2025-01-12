@@ -130,4 +130,44 @@ TaskRouter.put("/:id", async (req, res) => {
    }
 });
 
+TaskRouter.delete("/:id", async (req, res) => {
+    try {
+        const id = req.params.id;
+        const authToken = req.get("Authorization");
+
+        if (!authToken) {
+            res.status(400).send({ error: "Unauthorized: Token is missing" });
+            return;
+        }
+
+        const user = await User.findOne({ token: authToken });
+
+        if (!user) {
+            res.status(400).send({ error: "Unauthorized: Token is wrong" });
+            return;
+        }
+
+        const task = await Task.findById(id);
+
+        if (!task) {
+            res.status(404).send({ error: "Task not found" });
+            return;
+        }
+
+        if (task.user.toString() !== user._id.toString()) {
+            res.status(403).send({ error: "You can't delete this task" });
+            return;
+        }
+
+        await Task.findByIdAndDelete(id);
+
+        res.status(200).send({ message: "Task deleted successfully" });
+
+    } catch (error) {
+        console.error(error);
+        res.status(400).send({ error: "Error while deleting task" });
+    }
+});
+
+
 export default TaskRouter;
