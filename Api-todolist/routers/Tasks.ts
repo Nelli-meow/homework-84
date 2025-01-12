@@ -1,24 +1,12 @@
 import express from "express";
 import Task from "../models/Task";
-import User from "../models/User";
+import auth, {RequestWithUser} from "../middleware/auth";
 
 const TaskRouter = express.Router();
 
-TaskRouter.get("/", async (req, res) => {
+TaskRouter.get("/", auth, async (req, res) => {
    try {
-       const authToken = req.get("Authorization");
-
-       if (!authToken) {
-            res.status(400).send({ error: "Unauthorized: Token is missing" });
-           return;
-       }
-
-       const user = await User.findOne({ token: authToken });
-
-       if (!user) {
-           res.status(400).send({ error: "Unauthorized: Invalid token" });
-           return;
-       }
+       const user = (req as RequestWithUser).user;
 
        const tasks = await Task.find({ user: user._id }).populate("user");
 
@@ -35,21 +23,9 @@ TaskRouter.get("/", async (req, res) => {
    }
 });
 
-TaskRouter.post("/", async (req, res) => {
+TaskRouter.post("/", auth , async (req, res) => {
    try {
-       const authToken = req.get("Authorization");
-
-       if (!authToken) {
-           res.status(400).send({ error: "Unauthorized: Token is missing" });
-           return;
-       }
-
-       const user = await User.findOne({ token: authToken });
-
-       if (!user) {
-           res.status(400).send({ error: "Unauthorized: Token is wrong" });
-           return;
-       }
+       const user = (req as RequestWithUser).user;
 
        const { status, description, title } = req.body;
 
@@ -80,23 +56,11 @@ TaskRouter.post("/", async (req, res) => {
    }
 });
 
-TaskRouter.put("/:id", async (req, res) => {
+TaskRouter.put("/:id", auth,  async (req, res) => {
    try {
        const id = req.params.id;
 
-       const authToken = req.get("Authorization");
-
-       if (!authToken) {
-           res.status(400).send({ error: "Unauthorized: Token is missing" });
-           return;
-       }
-
-       const user = await User.findOne({ token: authToken });
-
-       if (!user) {
-           res.status(400).send({ error: "Unauthorized: Token is wrong" });
-           return;
-       }
+       const user = (req as RequestWithUser).user;
 
        const task = await Task.findById(id);
 
@@ -130,22 +94,10 @@ TaskRouter.put("/:id", async (req, res) => {
    }
 });
 
-TaskRouter.delete("/:id", async (req, res) => {
+TaskRouter.delete("/:id", auth,  async (req, res) => {
     try {
         const id = req.params.id;
-        const authToken = req.get("Authorization");
-
-        if (!authToken) {
-            res.status(400).send({ error: "Unauthorized: Token is missing" });
-            return;
-        }
-
-        const user = await User.findOne({ token: authToken });
-
-        if (!user) {
-            res.status(400).send({ error: "Unauthorized: Token is wrong" });
-            return;
-        }
+        const user = (req as RequestWithUser).user;
 
         const task = await Task.findById(id);
 

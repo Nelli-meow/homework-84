@@ -5,7 +5,6 @@ import {Error} from 'mongoose';
 const UsersRouter = express.Router();
 
 UsersRouter.post('/', async (req, res) => {
-
     try {
         const user = new User({
             username: req.body.username,
